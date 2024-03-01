@@ -1,0 +1,192 @@
+#!/bin/sh -e
+
+# to test POSIX-correctness, with /bin/bash:
+# set -o posix
+
+# Very simple configuration script for MacGate.  Some stuff borrowed
+# from paperconfig, (C) 1996, Yves Arrouye <arrouye@debian.org>
+
+# Written by David Huggins-Daines <dhd@debian.org>
+# I'm not a shell programmer, as if that's not immediately obvious
+
+usage() {
+    if [ "$1" = -h ]
+    then
+	exec 1>&2
+	echo -n U
+    else
+	echo -n u
+    fi
+
+    echo "sage: `basename $0` [ -v, --version ] [ -h, --help ] [ --force ]"
+
+    if [ "$1" = -h ]
+    then
+	cat <<EOF
+
+Options: -v, --verbose          print version information and exit
+         -h, --help             print this help and exit
+         --force                force configuration
+EOF
+	exit 0
+    else
+	exit 1
+    fi
+}
+
+version=0.2
+conffile=/etc/MacGated.conf
+
+force=0
+
+while [ $# -ne 0 ]
+do
+    case "$1" in
+	-v|--version)
+	    echo "`basename $0` version $version" \
+		"by David Huggins-Daines <dhd@debian.org>"
+	    exit 0
+	    ;;
+	-h|--help)
+	    usage -h
+	    ;;
+	--force)
+	    force=1
+	    ;;
+	*)
+	    usage
+	    ;;
+    esac
+    shift
+done
+
+if [ $force = 1 -o ! -e $conffile ]; then
+    # ask a stupid question...
+    kernelver=`uname -r`
+    major=`expr $kernelver : '.*\.\(.*\)\.'` || true
+    minor=`expr $kernelver : '.*\.\(.*\)'` || true
+
+    if [ $major -lt 1 -o $minor -lt 90 ]; then
+	cat <<EOF
+
+This package requires a kernel version of at least 2.1.90.  Your
+kernel version is $kernelver.  This package will be configured, but it
+will not work properly.  You should use either a more recent 2.1
+kernel or a 2.0.36 kernel with the "AppleTalkSuite" patch, available
+at http://www.debian.org/~dhd/netatalk/.  (If you have already
+applied this patch, feel free to ignore this warning).
+
+Hit [RETURN] to continue
+EOF
+	read foo || true
+    fi
+
+    # source the conffile to get some defaults
+
+    if [ -e $conffile ]; then
+	. $conffile
+    fi
+
+    configdev=`/sbin/ifconfig | grep '^ipddp' | cut -d ' ' -f1`
+
+    if [ "$configdev" -a ! -e $conffile ]; then
+	# No config-file, but IPDDP is already configured.
+	CONFIGIPDDP=0
+	# is there a better way to do this?
+	line=`/sbin/ifconfig | grep -A1 '^ipddp' | grep 'inet addr'`
+	IPDDPADDR=`expr "$line" : '.*addr:\([0-9]*\.[0-9]*\.[0-9]*\.[0-9]\)'`
+	cat <<EOF
+
+The IPDDP device $IPDDPDEV is already configured as IP address
+$IPDDPADDR.  It will not be configured at boot time by this package,
+so you should make sure that the appropriate commands are placed in
+/etc/init.d/network to start it, or you should bring it down and rerun
+/usr/sbin/macgateconfig --force.  See the ifconfig(8) manual page for more
+information.
+EOF
+
+    else
+	# should I ask whether to configure IPDDP?
+	: ${CONFIGIPDDP:=1}
+	: ${IPDDPADDR:=192.168.60.1}
+	: ${IPDDPDEV:=ipddp0}
+
+	echo "What IP address do you wish to use for the Appletalk-IP"
+	echo -n "decapsulation device? [$IPDDPADDR] "
+	read ans
+	: ${ans:=$IPDDPADDR}
+	IPDDPADDR=$ans
+    fi
+
+    cat <<EOF
+
+This package provides two ways of establishing Appletalk-IP routes:
+you can either start the "MacGated" daemon at boot time, or you can
+register gateways manually with the "MacRegister" command and add
+routes with "MacRoute".  See the MacGated(8), MacRegister(8) and
+MacRoute(8) manual pages for more information.
+
+EOF
+    : ${STARTMACGATED:=1}
+
+    echo -n "Do you want to start MacGated at boot time? "
+    if [ $STARTMACGATED = 1 ]; then
+	echo -n "[Y/n] "
+	read ans || true
+	: ${ans:="y"}
+    else
+	echo -n "[y/N] "
+	read ans || true
+	: ${ans:="n"}
+    fi
+
+    STARTMACGATED=`expr $ans : "[yY]" || true`
+
+	: ${STARTSCAN:=1}
+
+	echo -n "Do you want to scan for existing addresses at startup? "
+    if [ $STARTSCAN = 1 ]; then
+	echo -n "[Y/n] "
+	read ans || true
+	: ${ans:="y"}
+    else
+	echo -n "[y/N] "
+	read ans || true
+	: ${ans:="n"}
+    fi
+
+    STARTSCAN=`expr $ans : "[yY]" || true`
+
+    # now generate the config file
+    cat <<EOF >$conffile
+# /etc/MacGated.conf:
+# Configuration file for Debian package of MacGate, generated
+# automagically on `date` by macgateconfig
+# Run /usr/sbin/macgateconfig --force to rebuild it.
+
+# Configure the IPDDP device in the init script?  1 = yes, 0 = no.
+CONFIGIPDDP=$CONFIGIPDDP
+# Name of the IPDDP device (e.g. ipddp0)
+IPDDPDEV=$IPDDPDEV
+# IP Address of the IPDDP device
+IPDDPADDR=$IPDDPADDR
+
+# Start MacGated in the init script? 1 = yes, 0 = no
+STARTMACGATED=$STARTMACGATED
+
+# Scan for IPADDRs on startup? 1 = yes, 0 = no
+STARTSCAN=$STARTSCAN
+
+# Extra options (e.g. extra IP addresses with -i) to pass to
+# MacGated.  See MacGated(8) for more info.
+OPTIONS=
+EOF
+
+else
+    cat <<EOF
+Configuration file already exists - run /usr/sbin/macgateconfig --force
+to rebuild it.
+EOF
+fi
+
+exit 0

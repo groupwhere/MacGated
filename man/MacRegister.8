@@ -1,0 +1,42 @@
+.TH MACREGISTER 8 
+.\" NAME should be all caps, SECTION should be 1-8, maybe w/ subsection
+.\" other parms are allowed: see man(7), man(1)
+.SH NAME
+MacRegister \- Register an interface as an Appletalk IPGATEWAY node.
+.SH SYNOPSIS
+.B MacRegister
+\-c \fIcommand\ \-i \fIIP address \fR
+.SH "DESCRIPTION"
+This manual page documents briefly the
+.BR MacRegister
+command.
+This manual page was written for the Debian GNU/Linux distribution
+because the original program does not have a manual page.
+.PP
+.B MacRegister
+Registers or unregisters one of your GNU/Linux system's network
+interfaces as an `IPGATEWAY' node on the Appletalk network.
+.SH OPTIONS
+A summary of options are included below.
+.TP
+.B \-c \fIcommand\fR
+Registers or unregisters a gateway; `add' registers a gateway, `del'
+unregisters a gateway.
+.TP
+.B \-i \fIIP address\fR
+Specifies the IP address of the interface which is to be registered as 
+a gateway.
+.SH "SEE ALSO"
+.BR MacRoute (8)
+.BR MacPinger (8)
+.BR MacGated (8)
+.PP
+For more information on using the IPDDP device see
+Documentation/networking/ipddp.txt in the kernel source code, which
+explains more precisly on how to get the IPDDP device working.
+.SH AUTHOR
+The MacGate suite was written by Jay Schulist
+<Jay.Schulist@spacs.k12.wi.us> and is copyrighted under the GNU
+General Public License.  This manual page was adapted from the source
+code of MacRegister.c by David Huggins-Daines
+<dhd@debian.org>, for the Debian GNU/Linux system.

@@ -1,0 +1,48 @@
+.TH MACGATECONFIG 8
+.SH NAME
+.B macgateconfig
+\- create the MacGated.config file.
+.SH SYNOPSIS
+.B macgateconfig
+[
+.BR \-v\fP, \fB\-\-version
+]
+[
+.BR \-h\fP, \fB\-\-help
+]
+.B \-\-force
+]
+.SH DESCRIPTION
+.B macgateconfig
+creates the /etc/MacGated.config file, which is sourced by a script
+which runs at boot time, in order to determine whether and how to
+configure the IPDDP (Appletalk-IP decapsulation) device and run the
+MacGated routing daemon.  It asks a few questions and writes the file
+based on the administrator's answers.
+.PP
+.SH OPTIONS
+.TP
+.BR \-v\fP, \fB\-\-version
+Print the version of
+.B macgateconfig
+and exit.
+.TP
+.BR \-h\fP, \fB\-\-help
+Print help about usage and exit.
+.TP
+.B \-\-force
+Force the generation of new configuration files even if these files
+already exist on the system.
+.SH FILES
+.TP 25
+.B /etc/MacGated.config
+Contains directives for the script which starts
+MacGated and configures the IPDDP device at boot time.
+.SH AUTHOR
+David Huggins-Daines <dhd@debian.org>
+.SH SEE ALSO
+.BR MacGated (8),
+.BR MacRoute (8),
+.BR MacRegister (8),
+.BR ifconfig (8)
+

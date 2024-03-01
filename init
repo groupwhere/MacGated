@@ -1,0 +1,67 @@
+#!/bin/sh
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+DAEMON=/usr/sbin/MacGated
+CONFIG=/etc/MacGated.conf
+
+test -f $DAEMON || exit 0
+test -f $CONFIG || exit 0
+
+# Source the config file
+. $CONFIG
+
+case "$1" in
+	start)
+		if [ $CONFIGIPDDP = 1 ]; then
+			modprobe ipddp ipddp_mode=2
+			ip link set ipddp0 address 02:00:12:06:19:32
+			ifconfig $IPDDPDEV $IPDDPADDR up 2>/dev/null
+		fi
+		if [ $STARTMACGATED = 1 ]; then
+			if [ $STARTSCAN = 1 ]; then
+				DOSCAN="-s"
+			fi
+			echo -n "Starting Appletalk-IP routing daemon: MacGated"
+			start-stop-daemon --start --quiet --exec $DAEMON -- $DOSCAN -i $IPDDPADDR \
+				$OPTIONS
+			echo "."
+		fi
+		;;
+	stop)
+		if [ $STARTMACGATED = 1 ]; then
+			echo -n "Stopping Appletalk-IP routing daemon: MacGated"
+			start-stop-daemon --stop --quiet --oknodo --exec $DAEMON
+			echo "."
+		fi
+		if [ $CONFIGIPDDP = 1 ]; then
+			#ifconfig $IPDDPDEV down 2>/dev/null || exit 0
+			ifconfig $IPDDPDEV down 2>/dev/null
+			rmmod ipddp
+		fi
+		;;
+	restart)
+		stop
+		start
+		;;
+#   if [ $CONFIGIPDDP = 1 ]; then
+#		#ifconfig $IPDDPDEV $IPDDPADDR 2>/dev/null || exit 0
+#		ifconfig $IPDDPDEV $IPDDPADDR 2>/dev/null
+#    fi
+#    if [ $STARTMACGATED = 1 ]; then
+#		echo -n "Restarting Appletalk-IP routing daemon: MacGated"
+#		start-stop-daemon --stop --quiet --oknodo --exec $DAEMON
+#		start-stop-daemon --start --quiet --exec $DAEMON -- -i $IPDDPADDR \
+#		$OPTIONS
+#		echo "."
+#    fi
+#    ;;
+	force-reload)
+		$0 restart
+		;;
+	*)
+		echo "Usage: /etc/init.d/macgate {start|stop|restart|force-reload}"
+		exit 1
+		;;
+esac
+
+exit 0

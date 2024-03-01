@@ -1,0 +1,63 @@
+.TH MACGATED 8 
+.\" NAME should be all caps, SECTION should be 1-8, maybe w/ subsection
+.\" other parms are allowed: see man(7), man(1)
+.SH NAME
+MacGated \- Establish an Appletalk-IP route to the IPDDP device.
+.SH SYNOPSIS
+.B MacGated
+[\-s] \-i \fIIP address\fR [\-i \fIIP address\fR...]
+.SH "DESCRIPTION"
+This manual page documents briefly the
+.BR MacGated
+command.
+This manual page was written for the Debian GNU/Linux distribution
+because the original program does not have a manual page.
+.PP
+.B MacGated
+is a daemon that automatically adds and deletes routes to Macintosh
+computers on an Appletalk-IP network. For each Mac that comes onto the
+network to do IP,
+.B MacGated
+will create a route for it and spawn a child
+called
+.BR MacPinger(8).
+.BR MacPinger(8)
+pings the Mac every 45 seconds to see if
+the Mac is still doing IP. If the Mac does not respond then the route
+to that Mac is deleted.
+
+.SH OPTIONS
+A summary of options are included below.
+.TP
+.B \-s
+The -s directive tells
+.B MacGated
+to scan for Macintoshes that have already registered an Appletalk
+IPADDRESS node and include their IP in MacGate's routing tables for IP
+gatewaying. In short it is a good idea to enable this option.
+.TP
+.B \-i \fIIP address\fR
+Specifies the IP address of an interface to use as a gateway.
+MacGated can accept an unlimited number of -i directives. The -i
+command makes MacGated register that IP number as a IPGATEWAY on the
+Appletalk network. The best rule of thumb for this is to always
+register the IP of the ipddp0 device and then also register the IP of
+your main interface. (ie. eth0). You may have to play with some
+different combinations if your GNU/Linux system has many interfaces,
+but even registering everyone of your machines IPs will not hurt
+anything.
+.SH "SEE ALSO"
+.BR MacRegister (8)
+.BR MacPinger (8)
+.BR MacRoute (8)
+.PP
+For more information on using the IPDDP device see
+Documentation/networking/ipddp.txt in the kernel source code, which
+explains more precisly on how to get the IPDDP device working.
+.SH AUTHOR
+The MacGate suite was written by Jay Schulist
+<Jay.Schulist@spacs.k12.wi.us> and is copyrighted under the GNU
+General Public License.  This manual page was adapted from the source
+code of MacGated.c and the INSTALL.txt document by David
+Huggins-Daines <dhd@debian.org>, for the Debian GNU/Linux
+system.

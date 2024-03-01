@@ -1,0 +1,72 @@
+.TH MACPINGER 8 
+.\" NAME should be all caps, SECTION should be 1-8, maybe w/ subsection
+.\" other parms are allowed: see man(7), man(1)
+.SH NAME
+MacPinger \- Verify routes in the IPDDP device.
+.SH SYNOPSIS
+.B MacPinger
+\-i \fIIP address\fR \-v \fIinterval\fR \-r \fIretry count\fR \-t
+\fItimeout\fR
+.SH "DESCRIPTION"
+This manual page documents briefly the
+.BR MacPinger
+command.
+This manual page was written for the Debian GNU/Linux distribution
+because the original program does not have a manual page.
+.PP
+.B MacPinger
+provides route verification for
+.BR MacGated (8).
+For each route that is added to MacRouteList,
+.BR MacGated (8)
+spins a child.
+This child is called
+.B MacPinger.
+.B MacPinger
+is forked with the routing
+entry information. Immediately following fork()
+.B MacPinger
+sets an alarm for verification of this route based on Route->verify.
+The alarm goes off every Route->verify seconds. Upon waking the child
+(Pinger) sends Route->icmp_fail ICMP pings or untill a response is
+received. If a response is received then the routing entry is left in
+the list and the next alarm is set to go off in Route->verify
+seconds. If no ICMP response is received then the child terminates but
+first signaling MacGated (Parent) to remove the respective routing
+entry from the list. (As no ICMP ping response was received, either
+the Mac is down or defunct). This opens up that IP to be routed to
+another Mac.
+.PP
+It is possible that many children can be spawned. This should not be a
+problem as processing for each
+.B MacPinger
+is minimal.
+.SH OPTIONS
+A summary of options are included below.
+.TP
+.B \-i \fIIP address\fR
+Specifies the IP address of the Macintosh to be pinged.
+.TP
+.B \-i \fIinterval\fR
+Interval in seconds between ICMP verifies.
+.TP
+.B \-i \fIretry count\fR
+Number of ICMP retries before the route is marked dead.
+.TP
+.B \-i \fItimeout\fR
+Timeout between ICMP echo and reply.
+.SH "SEE ALSO"
+.BR MacRoute (8)
+.BR MacRegister (8)
+.BR MacGated (8)
+.BR ping (1)
+.PP
+For more information on using the IPDDP device see
+Documentation/networking/ipddp.txt in the kernel source code, which
+explains more precisly on how to get the IPDDP device working.
+.SH AUTHOR
+The MacGate suite was written by Jay Schulist
+<Jay.Schulist@spacs.k12.wi.us> and is copyrighted under the GNU
+General Public License.  This manual page was adapted from the source
+code of MacPinger.c by David Huggins-Daines
+<dhd@debian.org>, for the Debian GNU/Linux system.
