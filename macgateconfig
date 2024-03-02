@@ -36,6 +36,7 @@ EOF
 
 version=0.2
 conffile=/etc/MacGated.conf
+minkernel=2.1.90
 
 force=0
 
@@ -62,14 +63,12 @@ done
 
 if [ $force = 1 -o ! -e $conffile ]; then
     # ask a stupid question...
-    kernelver=`uname -r`
-    major=`expr $kernelver : '.*\.\(.*\)\.'` || true
-    minor=`expr $kernelver : '.*\.\(.*\)'` || true
-
-    if [ $major -lt 1 -o $minor -lt 90 ]; then
+	kernelver=`uname -r`
+	HIGHER_VERSION=`echo -e "$kernelver\n$minkernel" | sort -g -t '.' | tail --lines=1`
+	if [ "$HIGHER_VERSION" == "$minkernel" ]; then
 	cat <<EOF
 
-This package requires a kernel version of at least 2.1.90.  Your
+This package requires a kernel version of at least $minkernel.  Your
 kernel version is $kernelver.  This package will be configured, but it
 will not work properly.  You should use either a more recent 2.1
 kernel or a 2.0.36 kernel with the "AppleTalkSuite" patch, available

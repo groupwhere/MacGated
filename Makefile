@@ -48,3 +48,10 @@ install:
 	install -m644 man/MacPinger.8 ${DESTDIR}/usr/share/man/man8
 	install -m644 man/MacRegister.8 ${DESTDIR}/usr/share/man/man8
 	install -m644 man/MacRoute.8 ${DESTDIR}/usr/share/man/man8
+
+config:
+	sh macgateconfig
+
+config-force:
+	sh macgateconfig --force
+
